@@ -102,8 +102,8 @@ module BasicLTI::BasicOutcomes
       @lti_request && @lti_request.at_css('imsx_POXBody > replaceResultRequest > resultRecord > result > resultData > url').try(:content)
     end
 
-    def result_data_graded
-      @lti_request && @lti_request.at_css('imsx_POXBody > replaceResultRequest > resultRecord > result > resultData > graded').try(:content)
+    def result_data_needs_grading
+      @lti_request && @lti_request.at_css('imsx_POXBody > replaceResultRequest > resultRecord > result > resultData > needs_grading').try(:content)
     end
 
     def to_xml
@@ -200,14 +200,14 @@ to because the assignment has no points possible.
         self.code_major = 'failure'
         self.description = I18n.t('lib.basic_lti.no_points_possible', 'Assignment has no points possible.')
       else
-        if graded = result_data_graded
-          submission_hash.delete(:grade) if graded == 'false'
+        if needs_grading = result_data_needs_grading
+          submission_hash.delete(:grade) if needs_grading == 'false'
         end
         if submission_hash[:submission_type] != 'external_tool'
           assignment.submit_homework(user, submission_hash.clone)
         end
-        if graded
-          @submission = assignment.grade_student(user, submission_hash).first if graded == 'true'
+        if needs_grading
+          @submission = assignment.grade_student(user, submission_hash).first if needs_grading != 'false'
         else
           @submission = assignment.grade_student(user, submission_hash).first
         end

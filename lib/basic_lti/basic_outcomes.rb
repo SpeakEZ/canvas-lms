@@ -164,6 +164,7 @@ module BasicLTI::BasicOutcomes
     protected
 
     def handle_replaceResult(tool, course, assignment, user)
+      puts @lti_request
       text_value = self.result_score
       new_score = Float(text_value) rescue false
       error_message = nil
@@ -204,7 +205,15 @@ to because the assignment has no points possible.
           submission_hash.delete(:grade) if needs_grading == 'false'
         end
         if submission_hash[:submission_type] != 'external_tool'
-          assignment.submit_homework(user, submission_hash.clone)
+          @submission = assignment.submit_homework(user, submission_hash.clone)
+        end
+        if new_score
+          @submission = assignment.grade_student(user, submission_hash).first
+        end
+
+        unless @submission
+          self.code_major = 'failure'
+          self.description = I18n.t('lib.basic_lti.no_submission_created', 'This outcome request failed to create a new homework submission.')
         end
         if needs_grading
           @submission = assignment.grade_student(user, submission_hash).first if needs_grading != 'false'

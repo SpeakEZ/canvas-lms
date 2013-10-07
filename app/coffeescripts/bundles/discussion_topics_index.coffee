@@ -122,7 +122,8 @@ require [
     # Returns nothing.
     _sortCollection: (pipeline) ->
       group = @_groupModels(pipeline)
-      @discussions[key].collection.add(group[key]) for key of group
+      # add silently and just render whole sorted collection once all the pages have been fetched
+      @discussions[key].collection.add(group[key], silent: true) for key of group
 
     # Internal: Group models in the given collection into an object with
     # 'open', 'locked', and 'pinned' keys.
@@ -141,7 +142,7 @@ require [
     # Returns a string.
     _modelBucket: (model) ->
       return 'pinned' if model.get('pinned')
-      return 'locked' if model.get('locked')
+      return 'locked' if model.get('locked') || model.get('locked_for_user')
       'open'
 
     # Internal: Move a model from one collection to another.
